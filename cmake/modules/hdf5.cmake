@@ -32,4 +32,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(hdf5)
 
+
+target_link_libraries(hdf5-static INTERFACE hdf5_hl-static)
 add_library(hdf5::hdf5 ALIAS hdf5-static)
