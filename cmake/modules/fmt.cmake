@@ -16,3 +16,5 @@ FetchContent_Declare(
     GIT_SHALLOW FALSE
 )
 FetchContent_MakeAvailable(fmt)
+
+set_target_properties(fmt PROPERTIES FOLDER third_party)
