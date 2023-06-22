@@ -91,11 +91,12 @@ include(cmake/PrintTargetInfo.cmake)
 print_target_summary(h5pp)
 
 
-# if(H5PP_IS_SUBPROJECT)
-#     add_library(h5pp::h5pp ALIAS h5pp)
-#     add_library(h5pp::headers ALIAS headers)
-#     add_library(h5pp::deps ALIAS deps)
-#     add_library(h5pp::flags ALIAS h5pp)
+if(H5PP_IS_SUBPROJECT)
+    add_library(h5pp::h5pp ALIAS h5pp)
+    add_library(h5pp::headers ALIAS headers)
+    add_library(h5pp::deps ALIAS deps)
+    add_library(h5pp::flags ALIAS h5pp)
+endif()
 # else()
 
 #     # Install library
