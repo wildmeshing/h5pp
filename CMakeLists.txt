@@ -22,7 +22,7 @@ endif ()
 
 option(BUILD_SHARED_LIBS                "Builds shared libraries"                                                 OFF)
 option(H5PP_ENABLE_EIGEN3               "Enables Eigen3 linear algebra library"                                   OFF)
-option(H5PP_ENABLE_FMT                  "Enables the {fmt} formatting library"                                    OFF)
+option(H5PP_ENABLE_FMT                  "Enables the {fmt} formatting library"                                    ON)
 option(H5PP_ENABLE_SPDLOG               "Enables Spdlog for logging h5pp internal info to stdout (implies fmt)"   OFF)
 option(H5PP_ENABLE_MPI                  "Enables use of MPI (work in progress)"                                   OFF)
 option(H5PP_ENABLE_ASAN                 "Enable runtime address sanitizer -fsanitize=address"                     OFF)
@@ -42,6 +42,8 @@ if(H5PP_ENABLE_SPDLOG)
     set(H5PP_ENABLE_FMT ON CACHE INTERNAL "H5PP_ENABLE_SPDLOG:ON implies H5PP_ENABLE_FMT:ON)" FORCE)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/recipes/")
 
 # Setup paths that find_package should search, or where to find the conan executable
 include(cmake/SetupPaths.cmake)
@@ -89,78 +91,78 @@ include(cmake/PrintTargetInfo.cmake)
 print_target_summary(h5pp)
 
 
-if(H5PP_IS_SUBPROJECT)
-    add_library(h5pp::h5pp ALIAS h5pp)
-    add_library(h5pp::headers ALIAS headers)
-    add_library(h5pp::deps ALIAS deps)
-    add_library(h5pp::flags ALIAS h5pp)
-else()
+# if(H5PP_IS_SUBPROJECT)
+#     add_library(h5pp::h5pp ALIAS h5pp)
+#     add_library(h5pp::headers ALIAS headers)
+#     add_library(h5pp::deps ALIAS deps)
+#     add_library(h5pp::flags ALIAS h5pp)
+# else()
 
-    # Install library
-    # Read about this share path here https://cmake.org/cmake/help/v3.12/command/find_package.html
-    include(GNUInstallDirs)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT h5pp-include)
-    install(TARGETS h5pp headers deps flags EXPORT h5ppTargets)
+#     # Install library
+#     # Read about this share path here https://cmake.org/cmake/help/v3.12/command/find_package.html
+#     include(GNUInstallDirs)
+#     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT h5pp-include)
+#     install(TARGETS h5pp headers deps flags EXPORT h5ppTargets)
 
-    #Export the targets to a script
-    install(EXPORT
-            h5ppTargets
-            NAMESPACE h5pp::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp)
+#     #Export the targets to a script
+#     install(EXPORT
+#             h5ppTargets
+#             NAMESPACE h5pp::
+#             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp)
 
-    include(CMakePackageConfigHelpers)
-    configure_package_config_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppConfig.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfig.cmake
-            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
-    )
-    configure_package_config_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppDeps.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppDeps.cmake
-            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
-    )
+#     include(CMakePackageConfigHelpers)
+#     configure_package_config_file(
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppConfig.cmake.in
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfig.cmake
+#             INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
+#     )
+#     configure_package_config_file(
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppDeps.cmake.in
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppDeps.cmake
+#             INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
+#     )
 
-    configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppVars.cmake.in
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppVars.cmake
-            @ONLY)
+#     configure_file(
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppVars.cmake.in
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppVars.cmake
+#             @ONLY)
 
-    write_basic_package_version_file(
-            ${CMAKE_BINARY_DIR}/h5ppConfigVersion.cmake
-            VERSION ${PROJECT_VERSION}
-            COMPATIBILITY AnyNewerVersion
-    )
+#     write_basic_package_version_file(
+#             ${CMAKE_BINARY_DIR}/h5ppConfigVersion.cmake
+#             VERSION ${PROJECT_VERSION}
+#             COMPATIBILITY AnyNewerVersion
+#     )
 
-    #Install the config, configversion and custom find modules
-    install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfig.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppDeps.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppVars.cmake
-            ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfigVersion.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/HDF5TargetUtils.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindEigen3.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindFilesystem.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findfmt.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findspdlog.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindHDF5.cmake
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
-            COMPONENT h5pp-config
-            )
-
-
-    # Uninstall target
-    if(NOT TARGET h5pp-uninstall)
-        configure_file(
-                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppUninstall.cmake.in
-                ${CMAKE_CURRENT_BINARY_DIR}/h5ppUninstall.cmake
-                IMMEDIATE @ONLY)
-
-        add_custom_target(h5pp-uninstall
-                COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/h5ppUninstall.cmake)
-    endif()
+#     #Install the config, configversion and custom find modules
+#     install(FILES
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfig.cmake
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppDeps.cmake
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppVars.cmake
+#             ${CMAKE_CURRENT_BINARY_DIR}/h5ppConfigVersion.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/HDF5TargetUtils.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindEigen3.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindFilesystem.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findfmt.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findspdlog.cmake
+#             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindHDF5.cmake
+#             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
+#             COMPONENT h5pp-config
+#             )
 
 
-endif ()
+#     # Uninstall target
+#     if(NOT TARGET h5pp-uninstall)
+#         configure_file(
+#                 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/h5ppUninstall.cmake.in
+#                 ${CMAKE_CURRENT_BINARY_DIR}/h5ppUninstall.cmake
+#                 IMMEDIATE @ONLY)
+
+#         add_custom_target(h5pp-uninstall
+#                 COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/h5ppUninstall.cmake)
+#     endif()
+
+
+# endif ()
 
 
 # Simple testing with ctest
@@ -181,19 +183,19 @@ if(H5PP_BUILD_DOCS)
     add_subdirectory(docs)
 endif()
 
-# Use CPACK to generate .deb install file
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL h5pp-include h5pp-config)
+# # Use CPACK to generate .deb install file
+# set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+# set(CPACK_COMPONENTS_ALL h5pp-include h5pp-config)
 
-# Define apt dependencies that work with this library
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhdf5-dev (>=1.10), libeigen3-dev (>=3.3.4), libspdlog-dev (>=1.3)")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A C++ wrapper for HDF5")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/DavidAce/h5pp")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DavidAce <aceituno@kth.se>")
-set(CPACK_DEBIAN_PACKAGE_NAME "h5pp")
-set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_GENERATOR "DEB")
-include(CPack)
+# # Define apt dependencies that work with this library
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhdf5-dev (>=1.10), libeigen3-dev (>=3.3.4), libspdlog-dev (>=1.3)")
+# set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A C++ wrapper for HDF5")
+# set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/DavidAce/h5pp")
+# set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DavidAce <aceituno@kth.se>")
+# set(CPACK_DEBIAN_PACKAGE_NAME "h5pp")
+# set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+# set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+# set(CPACK_GENERATOR "DEB")
+# include(CPack)
 
 

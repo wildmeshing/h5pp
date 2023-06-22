@@ -8,6 +8,8 @@ foreach (ex ${EXAMPLES})
     get_filename_component(example_nwe ${ex} NAME_WE)
     add_executable(h5pp-${example_nwe} ${example_src})
     target_link_libraries(h5pp-${example_nwe} PRIVATE h5pp)
+    
+    #h5pp_target_link_system_libraries(h5pp-${example_nwe} PUBLIC hdf5::hdf5)
     if (MSVC)
         set_target_properties(h5pp-${example_nwe} PROPERTIES LINK_FLAGS "/ignore:4099")
     endif()
