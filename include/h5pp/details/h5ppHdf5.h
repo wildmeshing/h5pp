@@ -565,9 +565,9 @@ namespace h5pp::hdf5 {
             retval = H5Tset_strpad(type, H5T_STR_NULLTERM);
             if(retval < 0) throw h5pp::runtime_error("Failed to set strpad");
 
-            // Sets the character set to UTF-8
-            retval = H5Tset_cset(type, H5T_cset_t::H5T_CSET_UTF8);
-            if(retval < 0) throw h5pp::runtime_error("Failed to set char-set UTF-8");
+            // Sets the character set to ASCII
+            retval = H5Tset_cset(type, H5T_cset_t::H5T_CSET_ASCII);
+            if(retval < 0) throw h5pp::runtime_error("Failed to set char-set ASCII");
         }
     }
 
@@ -2849,7 +2849,7 @@ namespace h5pp::hdf5 {
 
         if constexpr(std::is_same_v<DataType, std::vector<std::byte>>) {
             auto newsize = info.recordBytes.value() * extent.value();
-            if(data.size() != newsize){
+            if(data.size() != newsize) {
                 h5pp::logger::log->trace("Resizing std::vector<std::byte> to size {}", newsize);
                 data.resize(newsize);
             }
@@ -3278,11 +3278,8 @@ namespace h5pp::hdf5 {
                 data = vdata;
                 /* Save metadata so that VLEN allocation can be reclaimed/free'd later */
                 if(util::should_track_vlen_reclaims<DataType>(info.h5Type.value(), plists)) {
-                    info.reclaimInfo = h5pp::ReclaimInfo::Reclaim(info.h5Type.value(),
-                                                                  dataSpace,
-                                                                  plists.dsetXfer,
-                                                                  vdata.data(),
-                                                                  info.tablePath.value());
+                    info.reclaimInfo =
+                        h5pp::ReclaimInfo::Reclaim(info.h5Type.value(), dataSpace, plists.dsetXfer, vdata.data(), info.tablePath.value());
                 }
                 return;
             }
