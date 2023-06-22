@@ -180,7 +180,7 @@ namespace h5pp::hdf5 {
     [[nodiscard]] inline int getDeflateLevel(hid_t dcpl /* dataset creation property list */) {
         auto filters = getFilters(dcpl);
         if((filters & H5Z_FILTER_DEFLATE) == H5Z_FILTER_DEFLATE) {
-            std::array<unsigned int, 1> cd_values = {0};
+            std::array<unsigned int, 1> cd_values = {{0}};
             size_t                      cd_nelmts = cd_values.size();
             H5Pget_filter_by_id(dcpl, H5Z_FILTER_DEFLATE, nullptr, &cd_nelmts, cd_values.data(), 0, nullptr, nullptr);
             return type::safe_cast<int>(cd_values[0]);
@@ -2881,12 +2881,12 @@ namespace h5pp::hdf5 {
         if(info.numRecords.value() == 0) return;
 
         /* Step 1: Get the dataset and memory spaces */
-        std::array<hsize_t, 1> dataDims  = {extent.value()};                  /* create a simple memory data space */
+        std::array<hsize_t, 1> dataDims  = {{extent.value()}};                /* create a simple memory data space */
         hid::h5s               dsetSpace = H5Dget_space(info.h5Dset.value()); /* get a copy of the new file data space for writing */
         hid::h5s               dataSpace = H5Screate_simple(dataDims.size(), dataDims.data(), nullptr);
 
         /* Step 2: draw a region in the dataset */
-        std::array<hsize_t, 1> dsetOffset = {offset.value()};
+        std::array<hsize_t, 1> dsetOffset = {{offset.value()}};
         std::array<hsize_t, 1> dsetExtent = dataDims;
         // Select the region in the dataset space
         H5Sselect_hyperslab(dsetSpace, H5S_SELECT_SET, dsetOffset.data(), nullptr, dsetExtent.data(), nullptr);
