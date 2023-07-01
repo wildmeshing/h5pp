@@ -7,7 +7,7 @@
 #endif
 
 #if defined(H5PP_USE_FMT) || defined(H5PP_USE_SPDLOG)
-    #if __has_include(<spdlog/fmt/fmt.h>)
+    #if __has_include(<spdlog/fmt/bundled/core.h>)
         // Spdlog will include the bundled fmt unless SPDLOG_FMT_EXTERNAL is defined, in which case <fmt/core.h> gets included instead
         // If SPDLOG_HEADER_ONLY is defined this will cause FMT_HEADER_ONLY to also get defined
         #include <spdlog/fmt/fmt.h>
