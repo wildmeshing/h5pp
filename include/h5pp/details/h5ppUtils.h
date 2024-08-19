@@ -122,11 +122,15 @@ namespace h5pp::util {
     }
     template<typename DataType, size_t rows, size_t cols>
     [[nodiscard]] constexpr std::array<size_t, 2> getArraySize([[maybe_unused]] const DataType (&arr)[rows][cols]) noexcept {
-        return {rows, cols};
+        return {
+            {rows, cols}
+        };
     }
     template<typename DataType, size_t rows, size_t cols, size_t depth>
     [[nodiscard]] constexpr std::array<size_t, 3> getArraySize([[maybe_unused]] const DataType (&arr)[rows][cols][depth]) noexcept {
-        return {rows, cols, depth};
+        return {
+            {rows, cols, depth}
+        };
     }
 
     template<typename DataType, typename = std::enable_if_t<not std::is_base_of_v<hid::hid_base<DataType>, DataType>>>
@@ -537,7 +541,7 @@ namespace h5pp::util {
         auto targetChunkBytes = std::clamp<double>(volumeChunkBytes,
                                                    std::max<double>(static_cast<double>(bytesPerElem), h5pp::constants::minChunkBytes),
                                                    std::max<double>(static_cast<double>(bytesPerElem), h5pp::constants::maxChunkBytes));
-        targetChunkBytes      = std::pow(2, std::ceil(std::log2(targetChunkBytes))); // Next nearest power of two
+        targetChunkBytes      = std::pow(2, std::ceil(std::log2(targetChunkBytes)));         // Next nearest power of two
         auto linearChunkSize  = std::ceil(std::pow(targetChunkBytes / static_cast<double>(bytesPerElem), 1.0 / static_cast<double>(rank)));
         auto chunkSize        = std::max<hsize_t>(1, static_cast<hsize_t>(linearChunkSize)); // Make sure the chunk size is positive
         std::vector<hsize_t> chunkDims(rank, chunkSize);

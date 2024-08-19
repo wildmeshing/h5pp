@@ -1,4 +1,4 @@
- 
+
 cmake_minimum_required(VERSION 3.15)
 project(h5pp VERSION 1.11.3
         DESCRIPTION "A C++17 wrapper for HDF5"
@@ -42,6 +42,8 @@ if(H5PP_ENABLE_SPDLOG)
     set(H5PP_ENABLE_FMT ON CACHE INTERNAL "H5PP_ENABLE_SPDLOG:ON implies H5PP_ENABLE_FMT:ON)" FORCE)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 
 # Setup paths that find_package should search, or where to find the conan executable
 include(cmake/SetupPaths.cmake)
@@ -180,19 +182,19 @@ if(H5PP_BUILD_DOCS)
     add_subdirectory(docs)
 endif()
 
-# Use CPACK to generate .deb install file
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL h5pp-include h5pp-config)
+# # Use CPACK to generate .deb install file
+# set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+# set(CPACK_COMPONENTS_ALL h5pp-include h5pp-config)
 
-# Define apt dependencies that work with this library
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhdf5-dev (>=1.10), libeigen3-dev (>=3.3.4), libspdlog-dev (>=1.3)")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A C++ wrapper for HDF5")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/DavidAce/h5pp")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DavidAce <aceituno@kth.se>")
-set(CPACK_DEBIAN_PACKAGE_NAME "h5pp")
-set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_GENERATOR "DEB")
-include(CPack)
+# # Define apt dependencies that work with this library
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libhdf5-dev (>=1.10), libeigen3-dev (>=3.3.4), libspdlog-dev (>=1.3)")
+# set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "A C++ wrapper for HDF5")
+# set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/DavidAce/h5pp")
+# set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DavidAce <aceituno@kth.se>")
+# set(CPACK_DEBIAN_PACKAGE_NAME "h5pp")
+# set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+# set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+# set(CPACK_GENERATOR "DEB")
+# include(CPack)
 
 
