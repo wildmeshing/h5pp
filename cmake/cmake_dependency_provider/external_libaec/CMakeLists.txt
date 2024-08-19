@@ -6,33 +6,20 @@ endif()
 include(GNUInstallDirs)
 include(ExternalProject)
 
-if(MSVC)
-    # Fix bug where libaec build gets confused about the shared library names
-    set(BUILD_SHARED_LIBS OFF CACHE STRING INTERNAL "")
-else()
-    # BUILD_SHARED_LIBS ON builds static+shared
-    set(BUILD_SHARED_LIBS ON CACHE STRING INTERNAL "")
-endif()
-
-
-ExternalProject_Add(external_hdf5
-        URL         https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-1.12.1/src/CMake-hdf5-1.12.1.tar.gz
-        URL_MD5     2191996e136130c57b3508796ce32c2a
-        PREFIX      ${CMAKE_BINARY_DIR}
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        )
 
 ExternalProject_Add(external_aec
-        URL         ${CMAKE_BINARY_DIR}/src/external_hdf5/LIBAEC.tar.gz
-        URL_MD5     cb73d4de5388ea5b2647f5eb04a51e11
+        URL         https://gitlab.dkrz.de/k202009/libaec/-/archive/v1.1.2/libaec-v1.1.2.tar.gz
+        URL_MD5     efc656b501fe832fc18fa464ca4b93c8
         PREFIX      ${CMAKE_BINARY_DIR}
         INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-        DEPENDS external_hdf5
         CMAKE_ARGS
         ${INIT_CACHE_ARG}
-        -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-        -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
         -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+        -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        -DCMAKE_INSTALL_RPATH:PATH=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
+        -DCMAKE_SKIP_BUILD_RPATH:BOOL=OFF
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF
+        -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=ON
+        -DCMAKE_INSTALL_MESSAGE=LAZY
+        -DBUILD_SHARED_LIBS:BOOL=OFF
         )

@@ -20,14 +20,14 @@
         #endif
     #elif __has_include(<fmt/core.h>) && __has_include(<fmt/ranges.h>)
         #if defined(SPDLOG_HEADER_ONLY)
-            // Since spdlog is header-only, let's assume fmt is as well
-            // We do this because we have no way of knowing if this is getting linked to libfmt
+        // Since spdlog is header-only, let's assume fmt is as well
+        // We do this because we have no way of knowing if this is getting linked to libfmt
             #define FMT_HEADER_ONLY
         #endif
         #include <fmt/core.h>
         #include <fmt/ranges.h>
     #else
-        // In this case there is no fmt so we make our own simple formatter
+    // In this case there is no fmt so we make our own simple formatter
         #pragma message \
             "h5pp warning: could not find fmt library headers <fmt/core.h> or <spdlog/fmt/fmt.h>: A hand-made formatter will be used instead. Consider using the fmt library for maximum performance"
 
@@ -46,19 +46,23 @@
 #if defined(FMT_FORMAT_H_) && (defined(H5PP_USE_FMT) || defined(H5PP_USE_SPDLOG))
 
 namespace h5pp {
+    #if defined(FMT_VERSION) && FMT_VERSION >= 81000
+    using fmt::format;
+    using fmt::print;
+    using fmt::runtime;
+    #else
+    using fmt::format;
+    using fmt::print;
     template<typename... Args>
-    [[nodiscard]] std::string format(Args... args) {
+    [[nodiscard]] std::string runtime(Args... args) {
         return fmt::format(std::forward<Args>(args)...);
     }
-    template<typename... Args>
-    void print(Args... args) {
-        fmt::print(std::forward<Args>(args)...);
-    }
+    #endif
+
 }
 #else
 
-    // In this case there is no fmt, so we make our own simple formatter
-    #include "h5ppTypeSfinae.h"
+// In this case there is no fmt, so we make our own simple formatter
     #include <algorithm>
     #include <iostream>
     #include <list>
@@ -67,34 +71,56 @@ namespace h5pp {
     #include <string>
 
 namespace h5pp {
-    namespace type::sfinae {
+
+    namespace formatting {
         template<typename T, typename = std::void_t<> >
         struct is_streamable : std::false_type {};
         template<typename T>
         struct is_streamable<T, std::void_t<decltype(std::declval<std::stringstream &> << std::declval<T>())> > : public std::true_type {};
         template<typename T>
         inline constexpr bool is_streamable_v = is_streamable<T>::value;
-    }
+        template<typename T, typename = std::void_t<> >
+        struct is_iterable : public std::false_type {};
+        template<typename T>
+        struct is_iterable<T, std::void_t<decltype(std::begin(std::declval<T>())), decltype(std::end(std::declval<T>()))> >
+            : public std::true_type {};
+        template<typename T>
+        inline constexpr bool is_iterable_v = is_iterable<T>::value;
+        template<typename T, typename = std::void_t<> >
+        struct has_c_str : public std::false_type {};
+        template<typename T>
+        struct has_c_str<T, std::void_t<decltype(std::declval<T>().c_str())> > : public std::true_type {};
+        template<typename T>
+        inline constexpr bool has_c_str_v = has_c_str<T>::value;
+        template<typename T>
+        struct is_text {
+            private:
+            using DecayType = typename std::remove_cv_t<std::decay_t<T> >;
 
-    namespace formatting {
-
+            public:
+            static constexpr bool value = std::is_constructible_v<std::string, DecayType> || has_c_str_v<DecayType> ||
+                                          std::is_same_v<DecayType, char *> || std::is_same_v<DecayType, char[]> ||
+                                          std::is_same_v<DecayType, char>;
+        };
+        template<typename T>
+        inline constexpr bool is_text_v = is_text<T>::value;
         template<class T, class... Ts>
         std::list<std::string> convert_to_string_list(const T &first, const Ts &...rest) {
             std::list<std::string> result;
-            if constexpr(h5pp::type::sfinae::is_text_v<T>) {
+            if constexpr(formatting::is_text_v<T>) {
                 result.emplace_back(first);
             } else if constexpr(std::is_arithmetic_v<T>) {
                 result.emplace_back(std::to_string(first));
-            } else if constexpr(h5pp::type::sfinae::is_streamable_v<T>) {
+            } else if constexpr(formatting::is_streamable_v<T>) {
                 std::stringstream sstr;
                 sstr << std::boolalpha << first;
                 result.emplace_back(sstr.str());
-            } else if constexpr(h5pp::type::sfinae::is_iterable_v<T>) {
+            } else if constexpr(is_iterable_v<T>) {
                 std::stringstream sstr;
                 sstr << std::boolalpha << "{";
                 for(const auto &elem : first) sstr << elem << ",";
                 //  Laborious casting here to avoid MSVC warnings and errors in std::min()
-                long rewind = -1 * std::min(1l, type::safe_cast<long>(first.size()));
+                long rewind = -1 * std::min(1l, static_cast<long>(first.size()));
                 sstr.seekp(rewind, std::ios_base::end);
                 sstr << "}";
                 result.emplace_back(sstr.str());
@@ -105,15 +131,20 @@ namespace h5pp {
         }
     }
 
-    inline std::string format(const std::string &fmtstring) { return fmtstring; }
+    inline std::string format(std::string_view fmtstring) { return std::string(fmtstring); }
+
+    template<typename T>
+    [[nodiscard]] auto runtime(T &&arg) {
+        return std::forward<T>(arg);
+    }
 
     template<typename... Args>
-    [[nodiscard]] std::string format(const std::string &fmtstring, [[maybe_unused]] Args... args) {
+    [[nodiscard]] std::string format(std::string_view fmtstring, [[maybe_unused]] Args... args) {
         auto brackets_left  = std::count(fmtstring.begin(), fmtstring.end(), '{');
         auto brackets_right = std::count(fmtstring.begin(), fmtstring.end(), '}');
-        if(brackets_left != brackets_right) return std::string("FORMATTING ERROR: GOT STRING: " + fmtstring);
+        if(brackets_left != brackets_right) return std::string("FORMATTING ERROR: GOT STRING: ") + std::string(fmtstring);
         auto                   arglist  = formatting::convert_to_string_list(args...);
-        std::string            result   = fmtstring;
+        std::string            result   = std::string(fmtstring);
         std::string::size_type curr_pos = 0;
         while(true) {
             if(arglist.empty()) break;

@@ -107,7 +107,7 @@ namespace h5pp::type::vlen {
         vl.len = v.size();
         vl.p   = calloc(v.size(), sizeof(T));
         if constexpr(sfinae::is_iterable_v<V>) std::copy(v.begin(), v.end(), begin());
-        if constexpr(sfinae::has_data_v<V>) std::copy(v.data(), v.data() + v.size(), begin());
+        else if constexpr(sfinae::has_data_v<V>) std::copy(v.data(), v.data() + v.size(), begin());
     }
 
     template<typename T>
@@ -143,6 +143,7 @@ namespace h5pp::type::vlen {
     template<typename T>
     varr_t<T> &varr_t<T>::operator=(varr_t<T> &&v) noexcept {
         if(vl.p == v.vl.p) return *this;
+        clear();
         vl.len   = v.vl.len;
         vl.p     = v.vl.p;
         v.vl.len = 0;
@@ -159,7 +160,7 @@ namespace h5pp::type::vlen {
         vl.len = v.size();
         vl.p   = calloc(v.size(), sizeof(T));
         if constexpr(sfinae::is_iterable_v<V>) std::copy(v.begin(), v.end(), begin());
-        if constexpr(sfinae::has_data_v<V>) std::copy(v.data(), v.data() + v.size(), begin());
+        else if constexpr(sfinae::has_data_v<V>) std::copy(v.data(), v.data() + v.size(), begin());
         return *this;
     }
     template<typename T>
@@ -251,16 +252,18 @@ namespace h5pp::type::vlen {
     template<typename T>
     void varr_t<T>::clear() noexcept {
         if(vl.p == nullptr) return;
-        if constexpr(std::is_destructible_v<T> and not std::is_trivially_destructible_v<T>)
+        if constexpr(std::is_destructible_v<T>)
             for(auto &v : *this) v.~T();
+
+        free(vl.p);
+        vl.p   = nullptr;
+        vl.len = 0;
     }
 
     template<typename T>
     varr_t<T>::~varr_t() noexcept {
         if(vl.p == nullptr) return;
         clear();
-        free(vl.p);
-        vl.p = nullptr;
     }
 
     template<typename T>
@@ -338,3 +341,17 @@ namespace h5pp::type::sfinae {
     template<typename T>
     inline constexpr bool is_or_has_varr_v = is_varr_v<T> or has_varr_v<T>;
 }
+
+#if defined(H5PP_USE_FMT) && defined(FMT_FORMAT_H_)
+
+// Add a custom fmt::formatter for h5pp::varr_t
+template<typename T, typename Char>
+struct fmt::formatter<h5pp::varr_t<T>, Char, typename ::std::enable_if_t<std::is_arithmetic_v<T>>::value>
+    : fmt::formatter<std::vector<T>, Char> {
+    // template <typename T, typename=std::enable_if_t<std::is_arithmetic_v<T>>::value>
+    // struct fmt::formatter<h5pp::varr_t<T>>: formatter<std::vector<T>> {
+    auto format(const h5pp::varr_t<T> &v, format_context &ctx) const {
+        return fmt::formatter<std::vector<T>>::format(std::vector<T>(v.begin(), v.end()), ctx);
+    }
+};
+#endif

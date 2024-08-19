@@ -333,3 +333,21 @@ namespace h5pp::type::sfinae {
     template<typename T>
     inline constexpr bool is_or_has_vstr_v = is_vstr_v<T> or has_vstr_v<T>;
 }
+
+
+#if defined(H5PP_USE_FMT) && defined(FMT_FORMAT_H_) && defined(FMT_VERSION)
+// Add a custom fmt::formatter for h5pp::vstr_t
+#if FMT_VERSION >= 90000
+template <> struct fmt::formatter<h5pp::vstr_t>: formatter<std::string_view>  {
+  auto format(const h5pp::vstr_t &s, format_context& ctx) const{
+        return fmt::formatter<string_view>::format(s.c_str(), ctx);
+  }
+};
+#else
+template <> struct fmt::formatter<const h5pp::vstr_t>: formatter<std::string_view> {
+  auto format(const h5pp::vstr_t &s, format_context& ctx){
+        return fmt::formatter<string_view>::format(s.c_str(), ctx);
+  }
+};
+#endif
+#endif

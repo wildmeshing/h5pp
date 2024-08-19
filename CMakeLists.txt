@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(h5pp VERSION 1.11.1
+project(h5pp VERSION 1.11.3
         DESCRIPTION "A C++17 wrapper for HDF5"
         HOMEPAGE_URL "https://github.com/DavidAce/h5pp"
         LANGUAGES C CXX
@@ -73,7 +73,7 @@ target_include_directories(headers SYSTEM INTERFACE $<INSTALL_INTERFACE:include>
 
 # Setup sanitizer
 if(H5PP_ENABLE_ASAN)
-    target_compile_options(flags INTERFACE -fsanitize=address -fno-omit-frame-pointer)
+    target_compile_options(flags INTERFACE -fsanitize=address $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fno-omit-frame-pointer>)
     target_link_libraries(flags INTERFACE -fsanitize=address)
 endif()
 
@@ -144,7 +144,6 @@ else()
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindFilesystem.cmake
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findfmt.cmake
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/Findspdlog.cmake
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindHDF5.cmake
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/h5pp
             COMPONENT h5pp-config
             )

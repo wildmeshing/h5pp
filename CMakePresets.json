@@ -42,34 +42,40 @@
       }
     },
     {
-      "name": "warnings-nix",
+      "name": "warnings",
       "hidden": true,
       "description": "Enable compiler warnings on linux and osx",
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Wconversion -Wunused",
         "CMAKE_C_FLAGS": "-Wall -Wextra -Wpedantic -Wconversion -Wunused"
-      },
-      "condition": {
-        "type": "inList",
-        "string": "${hostSystemName}",
-        "list": [
-          "Linux",
-          "Darwin"
-        ]
       }
     },
     {
       "name": "warnings-win",
       "hidden": true,
-      "description": "Enable compiler warnings on linux and osx",
+      "description": "Enable compiler warnings on windows",
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "/W4",
-        "CMAKE_C_FLAGS": "/W4"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+        "CMAKE_CXX_FLAGS": "/W3",
+        "CMAKE_C_FLAGS": "/W3"
+      }
+    },
+    {
+      "name": "options-win",
+      "hidden": true,
+      "description": "Set option for CMake configuration on windows",
+      "cacheVariables": {
+        "H5PP_ENABLE_ASAN": "FALSE",
+        "H5PP_ENABLE_PCH": "FALSE",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/install/${presetName}/bin"
+      }
+    },
+    {
+      "name": "analyzer",
+      "hidden": true,
+      "description": "Enable -fanalyzer warnings for debug builds linux and osx",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS_DEBUG": "-fanalyzer",
+        "CMAKE_C_FLAGS_DEBUG": "-fanalyzer"
       }
     },
     {
@@ -77,8 +83,13 @@
       "hidden": false,
       "displayName": "Release|no package manager",
       "description": "Plain release build without dependency handling.",
+      "inherits": [
+        "default"
+      ],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "H5PP_BUILD_EXAMPLES": "TRUE",
+        "H5PP_ENABLE_TESTS": "TRUE"
       }
     },
     {
@@ -87,8 +98,7 @@
       "displayName": "Debug|no package manager",
       "description": "Plain debug build without dependency handling.",
       "inherits": [
-        "warnings-nix",
-        "warnings-win",
+        "warnings",
         "default"
       ],
       "cacheVariables": {
@@ -117,11 +127,20 @@
       }
     },
     {
-      "name": "clang-14",
+      "name": "gcc-13",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-14",
-        "CMAKE_CXX_COMPILER": "clang++-14"
+        "CMAKE_C_COMPILER": "gcc-13",
+        "CMAKE_CXX_COMPILER": "g++-13",
+        "H5PP_USE_QUADMATH": "TRUE"
+      }
+    },
+    {
+      "name": "clang-17",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-17",
+        "CMAKE_CXX_COMPILER": "clang++-17"
       }
     },
     {
@@ -136,12 +155,28 @@
     {
       "name": "pkg-conan",
       "hidden": true,
+      "environment": {
+        "PATH": "$env{HOME}/miniconda3/bin:$env{HOME}/anaconda3/bin:$penv{PATH}"
+      },
       "cacheVariables": {
         "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan_dependency_provider/conan_provider.cmake",
         "CMAKE_FIND_PACKAGE_PREFER_CONFIG": "TRUE"
-      },
+      }
+    },
+    {
+      "name": "pkg-conan-win",
+      "hidden": true,
       "environment": {
-        "PATH": "$env{HOME}/miniconda3/bin:$env{HOME}/anaconda3/bin:$penv{PATH}"
+        "PATH": ";C:\\Program Files\\Conan\\conan;$env{USERPROFILE}\\miniconda3\\bin;$env{USERPROFILE}\\anaconda3\\bin;$penv{PATH}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan_dependency_provider/conan_provider.cmake",
+        "CMAKE_FIND_PACKAGE_PREFER_CONFIG": "TRUE"
       }
     },
     {
@@ -181,18 +216,18 @@
       ]
     },
     {
-      "name": "release-clang-14-conan",
-      "displayName": "Release|clang-14|conan package manager",
+      "name": "release-clang-17-conan",
+      "displayName": "Release|clang-17|conan package manager",
       "inherits": [
-        "clang-14",
+        "clang-17",
         "release-conan"
       ]
     },
     {
-      "name": "release-clang-14-cmake",
-      "displayName": "Release|clang-14|cmake package manager",
+      "name": "release-clang-17-cmake",
+      "displayName": "Release|clang-17|cmake package manager",
       "inherits": [
-        "clang-14",
+        "clang-17",
         "release-cmake"
       ]
     },
@@ -223,6 +258,14 @@
       ]
     },
     {
+      "name": "debug-gcc-13-conan",
+      "displayName": "Debug|gcc-13|conan package manager",
+      "inherits": [
+        "gcc-13",
+        "debug-conan"
+      ]
+    },
+    {
       "name": "debug-gcc-12-cmake",
       "displayName": "Debug|gcc-12|cmake package manager",
       "inherits": [
@@ -231,18 +274,18 @@
       ]
     },
     {
-      "name": "debug-clang-14-conan",
-      "displayName": "Debug|clang-14|conan package manager",
+      "name": "debug-clang-17-conan",
+      "displayName": "Debug|clang-17|conan package manager",
       "inherits": [
-        "clang-14",
+        "clang-17",
         "debug-conan"
       ]
     },
     {
-      "name": "debug-clang-14-cmake",
-      "displayName": "Debug|clang-14|cmake package manager",
+      "name": "debug-clang-17-cmake",
+      "displayName": "Debug|clang-17|cmake package manager",
       "inherits": [
-        "clang-14",
+        "clang-17",
         "debug-cmake"
       ]
     },
@@ -250,7 +293,9 @@
       "name": "github-actions",
       "hidden": true,
       "displayName": "Default configuration for github-actions",
-      "inherits": "default",
+      "inherits": [
+        "default"
+      ],
       "cacheVariables": {
         "H5PP_BUILD_DOCS": "FALSE",
         "H5PP_ENABLE_ASAN": "TRUE",
@@ -268,24 +313,95 @@
       "name": "github-actions-find",
       "displayName": "github-actions using plain find_package",
       "inherits": [
+        "warnings",
         "github-actions"
-      ]
+      ],
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Linux",
+          "Darwin"
+        ]
+      }
     },
     {
       "name": "github-actions-conan",
       "displayName": "github-actions using conan package manager",
       "inherits": [
+        "warnings",
         "pkg-conan",
         "github-actions"
-      ]
+      ],
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Linux",
+          "Darwin"
+        ]
+      }
     },
     {
       "name": "github-actions-cmake",
       "displayName": "github-actions using cmake package manager",
       "inherits": [
+        "warnings",
         "pkg-cmake",
         "github-actions"
-      ]
+      ],
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Linux",
+          "Darwin"
+        ]
+      }
+    },
+    {
+      "name": "github-actions-find-win",
+      "displayName": "github-actions using plain find_package on windows",
+      "inherits": [
+        "warnings-win",
+        "options-win",
+        "github-actions"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "github-actions-conan-win",
+      "displayName": "github-actions using conan package manager on windows",
+      "inherits": [
+        "warnings-win",
+        "options-win",
+        "pkg-conan-win",
+        "github-actions"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "github-actions-cmake-win",
+      "displayName": "github-actions using cmake package manager on windows",
+      "inherits": [
+        "warnings-win",
+        "options-win",
+        "pkg-cmake",
+        "github-actions"
+      ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
     }
   ],
   "buildPresets": [
@@ -314,11 +430,11 @@
       "configurePreset": "release-gcc-12-cmake"
     },
     {
-      "name": "release-clang-14-conan",
+      "name": "release-clang-17-conan",
       "configurePreset": "release-gcc-12-conan"
     },
     {
-      "name": "release-clang-14-cmake",
+      "name": "release-clang-17-cmake",
       "configurePreset": "release-gcc-12-cmake"
     },
     {
@@ -334,16 +450,20 @@
       "configurePreset": "debug-gcc-12-conan"
     },
     {
+      "name": "debug-gcc-13-conan",
+      "configurePreset": "debug-gcc-13-conan"
+    },
+    {
       "name": "debug-gcc-12-cmake",
       "configurePreset": "debug-gcc-12-cmake"
     },
     {
-      "name": "debug-clang-14-conan",
-      "configurePreset": "debug-clang-14-conan"
+      "name": "debug-clang-17-conan",
+      "configurePreset": "debug-clang-17-conan"
     },
     {
-      "name": "debug-clang-14-cmake",
-      "configurePreset": "debug-clang-14-cmake"
+      "name": "debug-clang-17-cmake",
+      "configurePreset": "debug-clang-17-cmake"
     },
     {
       "name": "github-actions-find",
@@ -359,6 +479,21 @@
       "name": "github-actions-cmake",
       "displayName": "Default build for github-actions",
       "configurePreset": "github-actions-cmake"
+    },
+    {
+      "name": "github-actions-find-win",
+      "displayName": "github-actions using plain find_package on windows",
+      "configurePreset": "github-actions-find-win"
+    },
+    {
+      "name": "github-actions-conan-win",
+      "displayName": "github-actions using conan package manager on windows",
+      "configurePreset": "github-actions-conan-win"
+    },
+    {
+      "name": "github-actions-cmake-win",
+      "displayName": "Default build for github-actions on windows",
+      "configurePreset": "github-actions-cmake-win"
     }
   ],
   "testPresets": [
@@ -379,7 +514,7 @@
       "name": "github-actions-default",
       "hidden": true,
       "output": {
-        "verbosity": "default",
+        "verbosity": "verbose",
         "outputOnFailure": true
       },
       "execution": {
@@ -438,6 +573,24 @@
     {
       "name": "github-actions-cmake",
       "configurePreset": "github-actions-cmake",
+      "configuration": "Debug",
+      "inherits": "github-actions-default"
+    },
+    {
+      "name": "github-actions-find-win",
+      "configurePreset": "github-actions-find-win",
+      "configuration": "Debug",
+      "inherits": "github-actions-default"
+    },
+    {
+      "name": "github-actions-conan-win",
+      "configurePreset": "github-actions-conan-win",
+      "configuration": "Debug",
+      "inherits": "github-actions-default"
+    },
+    {
+      "name": "github-actions-cmake-win",
+      "configurePreset": "github-actions-cmake-win",
       "configuration": "Debug",
       "inherits": "github-actions-default"
     }
