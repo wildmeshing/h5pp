@@ -91,21 +91,21 @@ namespace h5pp::type::flen {
         if(v.ptr == nullptr) return;
         strncpy(ptr, v.ptr, N);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", fmt::ptr(ptr), ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", h5pp::ptr(ptr), ptr);
     }
     template<size_t N>
     inline fstr_t<N>::fstr_t(const char *v) {
         if(v == nullptr) return;
         strncpy(ptr, v, N);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", fmt::ptr(ptr), ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", h5pp::ptr(ptr), ptr);
     }
     template<size_t N>
     inline fstr_t<N>::fstr_t(std::string_view v) {
         if(v.empty()) return;
         strncpy(ptr, v.data(), N);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", fmt::ptr(ptr), ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", h5pp::ptr(ptr), ptr);
     }
 
     template<size_t N>
@@ -113,7 +113,7 @@ namespace h5pp::type::flen {
         if(v.ptr == nullptr) return;
         strncpy(ptr, v.ptr, N);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", fmt::ptr(ptr), ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t copied into {}: {}", h5pp::ptr(ptr), ptr);
     }
     template<size_t N>
     template<typename T, typename>
@@ -147,7 +147,7 @@ namespace h5pp::type::flen {
             clear();
             strncpy(ptr, v.ptr, N);
             ptr[N - 1] = '\0';
-            if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t assigned into {}: {}", fmt::ptr(ptr), ptr);
+            if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t assigned into {}: {}", h5pp::ptr(ptr), ptr);
         }
         return *this;
     }
@@ -156,7 +156,7 @@ namespace h5pp::type::flen {
         clear();
         strncpy(ptr, v.data(), N);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t assigned into {}: {}", fmt::ptr(ptr), ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t assigned into {}: {}", h5pp::ptr(ptr), ptr);
         return *this;
     }
     template<size_t N>
@@ -271,7 +271,7 @@ namespace h5pp::type::flen {
         size_t oldlen = size();
         strncpy(ptr + oldlen, v, N - oldlen);
         ptr[N - 1] = '\0';
-        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t appended to {} | {} -> {}", fmt::ptr(ptr), v, ptr);
+        if constexpr(internal::debug_fstr_t) h5pp::logger::log->info("fstr_t appended to {} | {} -> {}", h5pp::ptr(ptr), v, ptr);
     }
 
     template<size_t N>
