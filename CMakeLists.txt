@@ -59,7 +59,6 @@ CheckCXXOptional()
 # Define main target and auxiliary targets for modular use
 add_library(h5pp INTERFACE)
 add_library(headers INTERFACE)
-add_library(deps INTERFACE)
 add_library(flags INTERFACE)
 
 # Required compiler features
@@ -83,7 +82,13 @@ include(cmake/SetupDependencies.cmake)
 
 # Link all targets to one main h5pp target (the only one that users should need)
 # However, it's nice to have them separately also if need be.
-target_link_libraries(h5pp INTERFACE headers deps flags)
+target_link_libraries(h5pp INTERFACE headers flags)
+
+get_target_property(DEPS_LINK_LIBS deps LINK_LIBRARIES)
+if(DEPS_LINK_LIBS)
+    set(DEPS_NONEMPTY TRUE)
+    target_link_libraries(h5pp INTERFACE headers flags deps)
+endif()
 
 
 # Print summary of CMake configuration
@@ -94,7 +99,9 @@ print_target_summary(h5pp)
 if(H5PP_IS_SUBPROJECT)
     add_library(h5pp::h5pp ALIAS h5pp)
     add_library(h5pp::headers ALIAS headers)
+    if(DEPS_NONEMPTY)
     add_library(h5pp::deps ALIAS deps)
+endif()
     add_library(h5pp::flags ALIAS h5pp)
 else()
 
