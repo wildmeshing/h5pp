@@ -1,6 +1,7 @@
 name: Windows 2022
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -47,9 +48,8 @@ jobs:
       - name: Run CMakePreset
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'github-actions-${{ matrix.manager }}'
-          configurePresetAdditionalArgs: "['-DH5PP_ENABLE_ASAN=FALSE']"
-          buildPreset: 'github-actions-${{ matrix.manager }}'
+          configurePreset: 'github-actions-${{ matrix.manager }}-win'
+          buildPreset: 'github-actions-${{ matrix.manager }}-win'
           buildPresetAdditionalArgs: "['--config Debug']"
-          testPreset: 'github-actions-${{ matrix.manager }}'
+          testPreset: 'github-actions-${{ matrix.manager }}-win'
           testPresetAdditionalArgs: "['--build-config=Debug']"

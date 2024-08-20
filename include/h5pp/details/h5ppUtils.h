@@ -104,7 +104,7 @@ namespace h5pp::util {
 
     template<typename DataType, size_t size>
     [[nodiscard]] constexpr size_t getArraySize([[maybe_unused]] const DataType (&arr)[size],
-                                                [[maybe_unused]] bool countChars = false) noexcept
+                                                [[maybe_unused]] bool           countChars = false) noexcept
     /*! Returns the size of a C-style array.
      */
     {
@@ -381,21 +381,23 @@ namespace h5pp::util {
         }
     }
 
-    template<typename DataType>
+    template<typename DataType, size_t depth = 0>
     [[nodiscard]] constexpr size_t getBytesPerElem() {
         /* clang-format off */
         static_assert(not type::sfinae::is_h5pp_id<DataType>);
         namespace sfn   = h5pp::type::sfinae;
         using DecayType = typename std::decay<DataType>::type;
-        if constexpr(std::is_pointer_v<DecayType>)          return getBytesPerElem<typename std::remove_pointer<DecayType>::type>();
-        else if constexpr(std::is_reference_v<DecayType>)   return getBytesPerElem<typename std::remove_reference<DecayType>::type>();
-        else if constexpr(std::is_array_v<DecayType>)       return getBytesPerElem<typename std::remove_all_extents<DecayType>::type>();
-        else if constexpr(sfn::is_std_complex_v<DecayType>) return sizeof(DecayType);
-        else if constexpr(sfn::is_ScalarN_v<DecayType>)     return sizeof(DecayType);
-        else if constexpr(std::is_arithmetic_v<DecayType>)  return sizeof(DecayType);
-        else if constexpr(sfn::has_Scalar_v<DecayType>)     return sizeof(typename DecayType::Scalar);
-        else if constexpr(sfn::has_value_type_v<DecayType>) return getBytesPerElem<typename DecayType::value_type>();
-        else                                                return sizeof(std::remove_all_extents_t<DecayType>);
+        if constexpr(std::is_pointer_v<DecayType>)                         return getBytesPerElem<typename std::remove_pointer<DecayType>::type, depth+1>();
+        else if constexpr(std::is_reference_v<DecayType>)                  return getBytesPerElem<typename std::remove_reference<DecayType>::type, depth+1>();
+        else if constexpr(std::is_array_v<DecayType> and depth == 0)       return getBytesPerElem<typename std::remove_all_extents<DecayType>::type,  depth+1>();
+        else if constexpr(sfn::is_std_complex_v<DecayType>)                return sizeof(DecayType);
+        else if constexpr(sfn::is_ScalarN_v<DecayType>)                    return sizeof(DecayType);
+        else if constexpr(std::is_arithmetic_v<DecayType>)                 return sizeof(DecayType);
+        else if constexpr(sfn::has_Scalar_v<DecayType> )                   return sizeof(typename DecayType::Scalar);
+        else if constexpr(sfn::has_value_type_v<DecayType> and depth == 0) return getBytesPerElem<typename DecayType::value_type, depth+1>();
+        else if constexpr(sfn::has_text_v<DecayType>)                      return 1;
+        else if constexpr(sfn::is_text_v<DecayType>)                       return 1;
+        else                                                               return sizeof(std::remove_all_extents_t<DecayType>);
         /* clang-format on */
     }
 
@@ -598,13 +600,16 @@ namespace h5pp::util {
             data.resize(type::safe_cast<Eigen::Index>(newDims[0]), type::safe_cast<Eigen::Index>(newDims[1]));
         } else if constexpr(h5pp::type::sfinae::is_eigen_tensor_v<DataType>) {
             if constexpr(h5pp::type::sfinae::has_resize_v<DataType>) {
-                if(newDims.size() != DataType::NumDimensions) {
-                    throw h5pp::runtime_error("Failed to resize {}-dimensional Eigen tensor: Dataset has dimensions {}",
-                                              DataType::NumDimensions,
-                                              newDims);
+                if constexpr(h5pp::type::sfinae::has_rank_v<DataType>) {
+                    if(newDims.size() != static_cast<size_t>(data.rank())) {
+                        throw h5pp::runtime_error("Failed to resize Eigen tensor with rank {}: Dataset has rank {}",
+                                                  data.rank(),
+                                                  newDims.size());
+                    }
                 }
-                auto eigenDims = eigen::copy_dims<DataType::NumDimensions>(newDims);
                 h5pp::logger::log->debug("Resizing eigen tensor container {} -> {}", data.dimensions(), newDims);
+                // Clang compilers require fixed-size arrays for dimensions so we make a fixed-size copy!
+                auto eigenDims = eigen::copy_dims<DataType::NumDimensions>(newDims);
                 data.resize(eigenDims);
             } else {
                 auto newSize = getSizeFromDimensions(newDims);

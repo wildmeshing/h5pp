@@ -1,4 +1,3 @@
-[![Ubuntu 18.04](https://github.com/DavidAce/h5pp/workflows/Ubuntu%2018.04/badge.svg?branch=master)](https://github.com/DavidAce/h5pp/actions)
 [![Ubuntu 20.04](https://github.com/DavidAce/h5pp/workflows/Ubuntu%2020.04/badge.svg?branch=master)](https://github.com/DavidAce/h5pp/actions)
 [![Ubuntu 22.04](https://github.com/DavidAce/h5pp/workflows/Ubuntu%2022.04/badge.svg?branch=master)](https://github.com/DavidAce/h5pp/actions)
 [![Windows 2019](https://github.com/DavidAce/h5pp/workflows/Windows%202019/badge.svg?branch=master)](https://github.com/DavidAce/h5pp/actions)
@@ -136,7 +135,7 @@ Install and configure [conan](https://conan.io), then run the following command 
 from [conan center](https://conan.io/center/h5pp):
 
 ```
-> conan install h5pp/1.11.0
+> conan install h5pp/1.11.2
 ```
 
 ### Option 2: Install with CMake Presets
