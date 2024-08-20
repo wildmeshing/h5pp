@@ -49,10 +49,12 @@ namespace h5pp {
     #if defined(FMT_VERSION) && FMT_VERSION >= 81000
     using fmt::format;
     using fmt::print;
+    using fmt::ptr;
     using fmt::runtime;
     #else
     using fmt::format;
     using fmt::print;
+    using fmt::ptr;
     template<typename... Args>
     [[nodiscard]] std::string runtime(Args... args) {
         return fmt::format(std::forward<Args>(args)...);
@@ -161,6 +163,17 @@ namespace h5pp {
     template<typename... Args>
     void print(Args... args) {
         std::printf("%s", h5pp::format(std::forward<Args>(args)...).c_str());
+    }
+
+    template<typename T>
+    [[nodiscard]] auto ptr(T p) -> const void *;
+    template<typename T>
+    [[nodiscard]] auto ptr(const std::unique_ptr<T> &p) -> const void * {
+        return p.get();
+    }
+    template<typename T>
+    [[nodiscard]] auto ptr(const std::shared_ptr<T> &p) -> const void * {
+        return p.get();
     }
 }
 #endif
